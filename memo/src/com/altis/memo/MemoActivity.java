@@ -32,8 +32,6 @@ public class MemoActivity extends Activity implements OnClickListener {
 		 delButton.setOnClickListener(this);
 		 expButton.setOnClickListener(this);
 		 
-		 Toast.makeText(this, fileName, Toast.LENGTH_LONG).show();
-		 
 		 try{
 			 FileInputStream fis = openFileInput(fileName);
 			 byte[] readBytes = new byte[fis.available()];
@@ -81,7 +79,7 @@ public class MemoActivity extends Activity implements OnClickListener {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.memo, menu);
+		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 	

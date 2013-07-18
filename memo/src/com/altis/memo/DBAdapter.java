@@ -16,7 +16,8 @@ public class DBAdapter {
 	  
 	  public static final String TABLE_NAME = "memos";
 	  public static final String COL_ID = "_id";
-	  public static final String COL_NOTE = "note";
+	  public static final String COL_TITLE = "title";
+	  public static final String COL_BODY = "body";
 	  public static final String COL_LASTUPDATE = "lastupdate";
 
 	  protected final Context context;
@@ -43,7 +44,8 @@ public class DBAdapter {
 	      db.execSQL(
 	        "CREATE TABLE " + TABLE_NAME + " ("
 	        + COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-	        + COL_NOTE + " TEXT NOT NULL,"
+	        + COL_TITLE + " TEXT NOT NULL,"
+	        + COL_BODY + " TEXT NOT NULL,"
 	        + COL_LASTUPDATE + " TEXT NOT NULL);");
 	    }
 
@@ -69,12 +71,6 @@ public class DBAdapter {
 	    dbHelper.close();
 	  }
 	  
-
-	  //
-	  // App Methods
-	  //
-	  
-	  
 	  public boolean deleteAllNotes(){
 	    return db.delete(TABLE_NAME, null, null) > 0;
 	  }
@@ -97,11 +93,11 @@ public class DBAdapter {
 	    return db.query(TABLE_NAME, null, null, null, null, null, null);
 	  }
 	  
-	  public void saveNote(String note){
+	  public void saveMemo(String title, String body){
 	    Date dateNow = new Date ();
 	    SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	    ContentValues values = new ContentValues();
-	    values.put(COL_NOTE, note);
+	    values.put(COL_TITLE, title);
 	    values.put(COL_LASTUPDATE, sdf.format(dateNow));
 	    db.insertOrThrow(TABLE_NAME, null, values);
 	  }

@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -16,7 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.View.OnClickListener;
+//import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -25,7 +26,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ListActivity extends Activity implements OnClickListener {
+public class ListActivity extends Activity{
 	
 	static final int MENUITEM_ID_DELETE = 1;
 	ListView itemListView;
@@ -33,27 +34,32 @@ public class ListActivity extends Activity implements OnClickListener {
 	Button  saveButton;
 	static DBAdapter dbAdapter;
 	static NoteListAdapter listAdapter;
-	static List<MemoData> noteList = new ArrayList<MemoData>();
+	static List<MemoData> memoList = new ArrayList<MemoData>();
   
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_table);
         itemListView = (ListView)findViewById(R.id.itemListView);
-        noteEditText = (EditText)findViewById(R.id.memoEditText);
-        saveButton = (Button)findViewById(R.id.saveButton);
-        saveButton.setOnClickListener(this);       
-        registerForContextMenu(itemListView);
-                
+        //saveButton.setOnClickListener(this);                       
         dbAdapter = new DBAdapter(this);
         listAdapter = new NoteListAdapter();
+        registerForContextMenu(itemListView);
         itemListView.setAdapter(listAdapter);
 
-        loadNote();
+        itemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(ListActivity.this, MemoActivity.class);
+                intent.putExtra("id", position);
+                startActivity(intent);
+            }
+        });
+        loadNote();        
     }
     
     protected void loadNote(){
-    	noteList.clear();
+    	memoList.clear();
       
     	// Read
     	dbAdapter.open();
@@ -61,26 +67,26 @@ public class ListActivity extends Activity implements OnClickListener {
       
     	if(c.moveToFirst()){
     		while(c.moveToNext()) {
-    			MemoData note = new MemoData(c.getInt(
+    			MemoData memo = new MemoData(c.getInt(
     					c.getColumnIndex(DBAdapter.COL_ID)),
-    					null,
-    					c.getString(c.getColumnIndex(DBAdapter.COL_NOTE)),
+    					c.getString(c.getColumnIndex(DBAdapter.COL_TITLE)),
+    					c.getString(c.getColumnIndex(DBAdapter.COL_BODY)),
     					c.getString(c.getColumnIndex(DBAdapter.COL_LASTUPDATE)));
-    			noteList.add(note);
+    			memoList.add(memo);
     		};
     	}    
     	dbAdapter.close();
       
     	listAdapter.notifyDataSetChanged();
     }
-    
+    /*
     protected void saveItem(){
     	dbAdapter.open();
-    	dbAdapter.saveNote(noteEditText.getText().toString());
+    	dbAdapter.saveMemo(noteEditText.getText().toString());
     	dbAdapter.close();
     	noteEditText.setText("");
     	loadNote();
-    }
+    }*/
     
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, 
@@ -96,7 +102,7 @@ public class ListActivity extends Activity implements OnClickListener {
     		AdapterView.AdapterContextMenuInfo menuInfo 
     		= (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();      
 	
-	        MemoData memo = noteList.get(menuInfo.position);
+	        MemoData memo = memoList.get(menuInfo.position);
 	        final int memoId = memo.getId();	        
 	        new AlertDialog.Builder(this)
 	        	.setTitle("ÉÅÉÇÇçÌèúÇµÇ‹Ç∑Ç©ÅH")
@@ -126,7 +132,7 @@ public class ListActivity extends Activity implements OnClickListener {
 	    return super.onContextItemSelected(item);
 	    }
 
-  
+  /*
   @Override
   	public void onClick(View v) {
 	  	switch(v.getId()){
@@ -134,7 +140,7 @@ public class ListActivity extends Activity implements OnClickListener {
 	  		saveItem();
 	  		break;
 	  	}
-  	}
+  	}*/
   
   @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -147,7 +153,8 @@ public class ListActivity extends Activity implements OnClickListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 	    case R.id.item_post:
-	    	Toast.makeText(this, "Post", Toast.LENGTH_LONG).show();
+	    	Intent intent = new Intent(ListActivity.this, MemoActivity.class);
+            startActivity(intent);
 	    	break;
 	    default:
 	    	break;
@@ -157,7 +164,7 @@ public class ListActivity extends Activity implements OnClickListener {
   
 	private static class ViewHolder {
 		TextView title;
-		//TextView body;
+		TextView body;
 		TextView lastupdate;
 	}
 
@@ -166,12 +173,12 @@ public class ListActivity extends Activity implements OnClickListener {
 
 		@Override
 		public int getCount() {
-			return noteList.size();
+			return memoList.size();
 		}
 
 		@Override
 		public Object getItem(int position) {
-			return noteList.get(position);
+			return memoList.get(position);
 		}	
 
 		@Override
@@ -190,12 +197,14 @@ public class ListActivity extends Activity implements OnClickListener {
     		
 			  	holder = new ViewHolder();
 			  	holder.title = (TextView) convertView.findViewById(R.id.titleText);
-			  	holder.lastupdate = (TextView) convertView.findViewById(R.id.bodyText); 
+			  	holder.body = (TextView) convertView.findViewById(R.id.bodyText);
+			  	holder.lastupdate = (TextView) convertView.findViewById(R.id.lastupdate);
 			  	convertView.setTag(holder);
 			}else {
 			  	holder = (ViewHolder) convertView.getTag();
 			}
-			holder.title.setText(memo.getBody());
+			holder.title.setText(memo.getTitle());
+			holder.body.setText(memo.getBody().substring(0, 10));
 			holder.lastupdate.setText(memo.getLastupdate());
 			return convertView;
 		}  
